@@ -7,10 +7,6 @@ import type { Todo } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-// ============================================
-// VALIDATION SCHEMAS
-// ============================================
-
 const createTodoSchema = z.object({
     title: z.string().min(1, 'Title is required').max(100, 'Title is too long'),
     description: z.string().optional(),
@@ -21,10 +17,6 @@ const updateTodoSchema = z.object({
     description: z.string().optional(),
     completed: z.boolean().optional(),
 });
-
-// ============================================
-// SERVER ACTIONS
-// ============================================
 
 export async function getTodosAction(): Promise<{
     success: boolean;
@@ -37,11 +29,12 @@ export async function getTodosAction(): Promise<{
 
         if (!token) return { success: false, message: 'Unauthorized' };
 
+        // ✅ FIX: Send token in Authorization header
         const response = await fetch(`${API_URL}/api/todos`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': `token=${token}`,
+                'Authorization': `Bearer ${token}`,  // ✅ Key change
             },
         });
 
@@ -50,7 +43,6 @@ export async function getTodosAction(): Promise<{
         }
 
         const json = await response.json();
-        // Backend returns: { success: true, data: { todos: [...] } }
         return { success: true, data: json.data?.todos || [] };
     } catch (error) {
         console.error('Get todos error:', error);
@@ -82,11 +74,12 @@ export async function createTodoAction(formData: FormData): Promise<{
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
+        // ✅ FIX: Send token in Authorization header
         const response = await fetch(`${API_URL}/api/todos`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': `token=${token}`,
+                'Authorization': `Bearer ${token}`,  // ✅ Key change
             },
             body: JSON.stringify(validation.data),
         });
@@ -112,11 +105,12 @@ export async function updateTodoAction(
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
+        // ✅ FIX: Send token in Authorization header
         await fetch(`${API_URL}/api/todos/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': `token=${token}`,
+                'Authorization': `Bearer ${token}`,  // ✅ Key change
             },
             body: JSON.stringify(data),
         });
@@ -133,10 +127,12 @@ export async function deleteTodoAction(id: string): Promise<void> {
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
+        // ✅ FIX: Send token in Authorization header
         await fetch(`${API_URL}/api/todos/${id}`, {
             method: 'DELETE',
             headers: {
-                'Cookie': `token=${token}`,
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,  // ✅ Key change
             },
         });
 

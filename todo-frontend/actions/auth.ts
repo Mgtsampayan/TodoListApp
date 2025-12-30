@@ -6,10 +6,6 @@ import { z } from 'zod';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-// ============================================
-// VALIDATION SCHEMAS (Match backend)
-// ============================================
-
 const registerSchema = z.object({
   email: z.string().email('Invalid email format'),
   password: z
@@ -26,19 +22,12 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
-// ============================================
-// TYPE DEFINITIONS
-// ============================================
-
 interface ActionResult {
   success: boolean;
   message: string;
   errors?: Record<string, string[]>;
+  token?: string;  // ✅ ADD: Return token to client
 }
-
-// ============================================
-// SERVER ACTIONS
-// ============================================
 
 /**
  * Register new user
@@ -48,7 +37,6 @@ export async function registerAction(
   formData: FormData
 ): Promise<ActionResult> {
   try {
-    // 1. Extract and validate form data
     const rawData = {
       email: formData.get('email') as string,
       password: formData.get('password') as string,
@@ -64,19 +52,17 @@ export async function registerAction(
       };
     }
 
-    // 2. Call backend API
+    // ✅ FIX: No credentials needed, token comes in response
     const response = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(validationResult.data),
-      credentials: 'include', // ✅ Important for cookies
     });
 
     const data = await response.json();
 
-    // 3. Handle response
     if (!response.ok) {
       return {
         success: false,
@@ -84,23 +70,22 @@ export async function registerAction(
       };
     }
 
-    // 4. Extract cookie from response and set it
-    // ⚠️ NEXT.JS 16: cookies() is now async
-    const setCookieHeader = response.headers.get('set-cookie');
-    if (setCookieHeader) {
-      const cookieStore = await cookies();
-      // Parse the cookie (simple extraction - production would need proper parsing)
-      const tokenMatch = setCookieHeader.match(/token=([^;]+)/);
-      if (tokenMatch) {
-        cookieStore.set('token', tokenMatch[1], {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 7 * 24 * 60 * 60, // 7 days
-          path: '/',
-        });
-      }
-    }
+    // ✅ FIX: Store token in httpOnly cookie (server-side)
+    const cookieStore = await cookies();
+    cookieStore.set('token', data.data.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60,
+      path: '/',
+    });
+
+    // Return success without redirecting here
+    return {
+      success: true,
+      message: 'Registration successful',
+      token: data.data.token,
+    };
 
   } catch (error) {
     console.error('Register action error:', error);
@@ -109,9 +94,6 @@ export async function registerAction(
       message: 'An unexpected error occurred',
     };
   }
-
-  // 5. Redirect to dashboard
-  redirect('/dashboard');
 }
 
 /**
@@ -122,7 +104,6 @@ export async function loginAction(
   formData: FormData
 ): Promise<ActionResult> {
   try {
-    // 1. Extract and validate form data
     const rawData = {
       email: formData.get('email') as string,
       password: formData.get('password') as string,
@@ -138,19 +119,16 @@ export async function loginAction(
       };
     }
 
-    // 2. Call backend API
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(validationResult.data),
-      credentials: 'include',
     });
 
     const data = await response.json();
 
-    // 3. Handle response
     if (!response.ok) {
       return {
         success: false,
@@ -158,21 +136,21 @@ export async function loginAction(
       };
     }
 
-    // 4. Extract and set cookie
-    const setCookieHeader = response.headers.get('set-cookie');
-    if (setCookieHeader) {
-      const cookieStore = await cookies();
-      const tokenMatch = setCookieHeader.match(/token=([^;]+)/);
-      if (tokenMatch) {
-        cookieStore.set('token', tokenMatch[1], {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 7 * 24 * 60 * 60,
-          path: '/',
-        });
-      }
-    }
+    // ✅ FIX: Store token in httpOnly cookie
+    const cookieStore = await cookies();
+    cookieStore.set('token', data.data.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60,
+      path: '/',
+    });
+
+    return {
+      success: true,
+      message: 'Login successful',
+      token: data.data.token,
+    };
 
   } catch (error) {
     console.error('Login action error:', error);
@@ -181,9 +159,6 @@ export async function loginAction(
       message: 'An unexpected error occurred',
     };
   }
-
-  // 5. Redirect to dashboard
-  redirect('/dashboard');
 }
 
 /**
@@ -191,7 +166,6 @@ export async function loginAction(
  */
 export async function logoutAction(): Promise<void> {
   try {
-    // 1. Call backend logout endpoint
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -200,20 +174,18 @@ export async function logoutAction(): Promise<void> {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Cookie': `token=${token}`,
+          'Authorization': `Bearer ${token}`,  // ✅ FIX: Send as header
         },
-        credentials: 'include',
       });
     }
 
-    // 2. Clear cookie on frontend
+    // Clear cookie
     cookieStore.delete('token');
 
   } catch (error) {
     console.error('Logout action error:', error);
   }
 
-  // 3. Redirect to login
   redirect('/login');
 }
 
@@ -231,7 +203,7 @@ export async function getCurrentUserAction() {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Cookie': `token=${token}`,
+        'Authorization': `Bearer ${token}`,  // ✅ FIX: Send as header
       },
     });
 
