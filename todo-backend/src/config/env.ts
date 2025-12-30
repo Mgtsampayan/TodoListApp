@@ -12,26 +12,40 @@ const envSchema = z.object({
     JWT_EXPIRES_IN: z.string().default('7d'),
 
     // Server
-    PORT: z.string().transform(Number).pipe(z.number().int().positive()).default(5000),
+    PORT: z.preprocess(
+        (val) => val ? Number(val) : 5000,
+        z.number().int().positive()
+    ),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
     // CORS
-    FRONTEND_URL: z.string().url('Invalid FRONTEND_URL'),
+    // FRONTEND_URL: z.string().url('Invalid FRONTEND_URL'),
+    FRONTEND_URL: z.preprocess(
+        (val) => typeof val === 'string' ? val.trim() : val,
+        z.url()
+    ),
 
     // Cookies
     COOKIE_DOMAIN: z.string().default('localhost'),
-    COOKIE_SECURE: z.string().transform(val => val === 'true').default(false),
+    COOKIE_SECURE: z.preprocess(
+        (val) => val === 'true',
+        z.boolean()
+    ).default(false),
     COOKIE_SAME_SITE: z.enum(['strict', 'lax', 'none']).default('lax'),
 });
 
-export type Env = z.infer<typeof envSchema>;
-
-// Validate environment variables on startup
+// 2. Validate environment variables on startup
 const parsedEnv = envSchema.safeParse(process.env);
 
 if (!parsedEnv.success) {
-    console.error('❌ Invalid environment variables:', parsedEnv.error.format());
+    console.error('❌ Invalid environment variables:');
+    // Print errors in a readable format
+    console.error(parsedEnv.error.format());
     process.exit(1);
 }
 
+// 3. Export the validated and typed environment
 export const env = parsedEnv.data;
+
+// 4. Type for TS support
+export type Env = typeof env;
