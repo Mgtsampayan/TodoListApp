@@ -1,3 +1,4 @@
+// src/controllers/todoController.ts
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/prisma.ts';
 import { Role } from '../../generated/client/client.ts';
@@ -9,26 +10,20 @@ import { Role } from '../../generated/client/client.ts';
 export async function getTodos(req: Request, res: Response, next: NextFunction) {
     try {
         if (!req.user) {
-            res.status(401).json({
+            return res.status(401).json({
                 success: false,
                 message: 'Authentication required',
             });
-            return;
         }
 
         const todos = await prisma.todo.findMany({
             where: req.user.role === Role.ADMIN ? {} : { ownerId: req.user.id },
             include: {
                 owner: {
-                    select: {
-                        id: true,
-                        email: true,
-                    },
+                    select: { id: true, email: true },
                 },
             },
-            orderBy: {
-                createdAt: 'desc',
-            },
+            orderBy: { createdAt: 'desc' },
         });
 
         res.json({
@@ -47,11 +42,10 @@ export async function getTodos(req: Request, res: Response, next: NextFunction) 
 export async function createTodo(req: Request, res: Response, next: NextFunction) {
     try {
         if (!req.user) {
-            res.status(401).json({
+            return res.status(401).json({
                 success: false,
                 message: 'Authentication required',
             });
-            return;
         }
 
         const { title, description } = req.body;
@@ -63,12 +57,7 @@ export async function createTodo(req: Request, res: Response, next: NextFunction
                 ownerId: req.user.id,
             },
             include: {
-                owner: {
-                    select: {
-                        id: true,
-                        email: true,
-                    },
-                },
+                owner: { select: { id: true, email: true } },
             },
         });
 
@@ -89,14 +78,20 @@ export async function createTodo(req: Request, res: Response, next: NextFunction
 export async function updateTodo(req: Request, res: Response, next: NextFunction) {
     try {
         if (!req.user) {
-            res.status(401).json({
+            return res.status(401).json({
                 success: false,
                 message: 'Authentication required',
             });
-            return;
         }
 
         const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: 'Todo ID is required',
+            });
+        }
+
         const { title, description, completed } = req.body;
 
         // Find todo
@@ -105,20 +100,18 @@ export async function updateTodo(req: Request, res: Response, next: NextFunction
         });
 
         if (!existingTodo) {
-            res.status(404).json({
+            return res.status(404).json({
                 success: false,
                 message: 'Todo not found',
             });
-            return;
         }
 
         // Authorization check: USER can only update own todos
         if (req.user.role === Role.USER && existingTodo.ownerId !== req.user.id) {
-            res.status(403).json({
+            return res.status(403).json({
                 success: false,
                 message: 'You can only update your own todos',
             });
-            return;
         }
 
         // Update todo
@@ -130,12 +123,7 @@ export async function updateTodo(req: Request, res: Response, next: NextFunction
                 ...(completed !== undefined && { completed }),
             },
             include: {
-                owner: {
-                    select: {
-                        id: true,
-                        email: true,
-                    },
-                },
+                owner: { select: { id: true, email: true } },
             },
         });
 
@@ -156,14 +144,19 @@ export async function updateTodo(req: Request, res: Response, next: NextFunction
 export async function deleteTodo(req: Request, res: Response, next: NextFunction) {
     try {
         if (!req.user) {
-            res.status(401).json({
+            return res.status(401).json({
                 success: false,
                 message: 'Authentication required',
             });
-            return;
         }
 
         const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: 'Todo ID is required',
+            });
+        }
 
         // Find todo
         const existingTodo = await prisma.todo.findUnique({
@@ -171,26 +164,22 @@ export async function deleteTodo(req: Request, res: Response, next: NextFunction
         });
 
         if (!existingTodo) {
-            res.status(404).json({
+            return res.status(404).json({
                 success: false,
                 message: 'Todo not found',
             });
-            return;
         }
 
         // Authorization check: USER can only delete own todos
         if (req.user.role === Role.USER && existingTodo.ownerId !== req.user.id) {
-            res.status(403).json({
+            return res.status(403).json({
                 success: false,
                 message: 'You can only delete your own todos',
             });
-            return;
         }
 
         // Delete todo
-        await prisma.todo.delete({
-            where: { id },
-        });
+        await prisma.todo.delete({ where: { id } });
 
         res.json({
             success: true,
