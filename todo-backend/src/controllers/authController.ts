@@ -2,7 +2,6 @@ import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/prisma.ts';
 import { hashPassword, verifyPassword } from '../utils/password.ts';
 import { generateToken } from '../utils/jwt.ts';
-import { env } from '../config/env.ts';
 
 /**
  * Register new user
@@ -33,7 +32,7 @@ export async function register(req: Request, res: Response, next: NextFunction) 
             data: {
                 email,
                 password: hashedPassword,
-                role: 'USER', // Default role
+                role: 'USER',
             },
             select: {
                 id: true,
@@ -50,19 +49,14 @@ export async function register(req: Request, res: Response, next: NextFunction) 
             role: user.role,
         });
 
-        // Set HttpOnly cookie
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: env.COOKIE_SECURE,
-            sameSite: env.COOKIE_SAME_SITE,
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            domain: env.COOKIE_DOMAIN,
-        });
-
+        // ✅ FIX: Return token in response body instead of cookie
         res.status(201).json({
             success: true,
             message: 'User registered successfully',
-            data: { user },
+            data: { 
+                user,
+                token  // ✅ Frontend will store this
+            },
         });
     } catch (error) {
         next(error);
@@ -77,7 +71,6 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     try {
         const { email, password } = req.body;
 
-        // Find user
         const user = await prisma.user.findUnique({
             where: { email },
         });
@@ -90,7 +83,6 @@ export async function login(req: Request, res: Response, next: NextFunction) {
             return;
         }
 
-        // Verify password
         const isValidPassword = await verifyPassword(password, user.password);
 
         if (!isValidPassword) {
@@ -101,22 +93,13 @@ export async function login(req: Request, res: Response, next: NextFunction) {
             return;
         }
 
-        // Generate JWT
         const token = await generateToken({
             id: user.id,
             email: user.email,
             role: user.role,
         });
 
-        // Set HttpOnly cookie
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: env.COOKIE_SECURE,
-            sameSite: env.COOKIE_SAME_SITE,
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            domain: env.COOKIE_DOMAIN,
-        });
-
+        // ✅ FIX: Return token in body
         res.json({
             success: true,
             message: 'Login successful',
@@ -126,6 +109,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
                     email: user.email,
                     role: user.role,
                 },
+                token  // ✅ Frontend will store this
             },
         });
     } catch (error) {
@@ -134,19 +118,12 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 }
 
 /**
- * Logout user
+ * Logout user (now just returns success)
  * POST /api/auth/logout
  */
 export async function logout(req: Request, res: Response, next: NextFunction) {
     try {
-        // Clear cookie
-        res.clearCookie('token', {
-            httpOnly: true,
-            secure: env.COOKIE_SECURE,
-            sameSite: env.COOKIE_SAME_SITE,
-            domain: env.COOKIE_DOMAIN,
-        });
-
+        // No cookie to clear - frontend will delete token from storage
         res.json({
             success: true,
             message: 'Logout successful',

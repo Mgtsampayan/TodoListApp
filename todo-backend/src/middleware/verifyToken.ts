@@ -8,8 +8,19 @@ export async function verifyTokenMiddleware(
     next: NextFunction
 ) {
     try {
-        // Extract token from cookie
-        const token = req.cookies?.token;
+        // ✅ FIX: Extract token from Authorization header instead of cookie
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            res.status(401).json({
+                success: false,
+                message: 'Authentication required',
+            });
+            return;
+        }
+
+        // Extract token after "Bearer "
+        const token = authHeader.substring(7);
 
         if (!token) {
             res.status(401).json({
