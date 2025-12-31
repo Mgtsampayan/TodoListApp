@@ -182,23 +182,23 @@ export default function LoginForm() {
                         Create a new account
                     </Link>
                 </div>
-            </form>
+            </form >
 
-            <div className="mt-6 p-4 bg-gray-50/50 rounded-xl border border-gray-200/50">
-                <p className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
-                    Test Access
-                </p>
-                <div className="space-y-1.5 text-xs text-gray-600 font-mono">
-                    <div className="flex justify-between">
-                        <span className="font-medium">User:</span>
-                        <span>user@example.com / User123!</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="font-medium">Admin:</span>
-                        <span>admin@example.com / Admin123!</span>
-                    </div>
+            {/* <div className="mt-6 p-4 bg-gray-50/50 rounded-xl border border-gray-200/50">
+            <p className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
+                Test Access
+            </p>
+            <div className="space-y-1.5 text-xs text-gray-600 font-mono">
+                <div className="flex justify-between">
+                    <span className="font-medium">User:</span>
+                    <span>user@example.com / User123!</span>
+                </div>
+                <div className="flex justify-between">
+                    <span className="font-medium">Admin:</span>
+                    <span>admin@example.com / Admin123!</span>
                 </div>
             </div>
+        </div> */}
         </div>
     );
 }
