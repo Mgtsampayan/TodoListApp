@@ -26,7 +26,6 @@ interface ActionResult {
   success: boolean;
   message: string;
   errors?: Record<string, string[]>;
-  token?: string;  // ✅ ADD: Return token to client
 }
 
 /**
@@ -84,7 +83,6 @@ export async function registerAction(
     return {
       success: true,
       message: 'Registration successful',
-      token: data.data.token,
     };
 
   } catch (error) {
@@ -149,7 +147,6 @@ export async function loginAction(
     return {
       success: true,
       message: 'Login successful',
-      token: data.data.token,
     };
 
   } catch (error) {
@@ -174,7 +171,7 @@ export async function logoutAction(): Promise<void> {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,  // ✅ FIX: Send as header
+          'Cookie': `token=${token}`, // ✅ SECURITY HARDENING: Use Cookie
         },
       });
     }
@@ -203,7 +200,7 @@ export async function getCurrentUserAction() {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,  // ✅ FIX: Send as header
+        'Cookie': `token=${token}`, // ✅ SECURITY HARDENING: Use Cookie
       },
     });
 

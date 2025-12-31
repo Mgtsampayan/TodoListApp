@@ -34,7 +34,7 @@ export async function getTodosAction(): Promise<{
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,  // ✅ Key change
+                'Cookie': `token=${token}`,
             },
         });
 
@@ -79,7 +79,7 @@ export async function createTodoAction(formData: FormData): Promise<{
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,  // ✅ Key change
+                'Cookie': `token=${token}`,
             },
             body: JSON.stringify(validation.data),
         });
@@ -110,7 +110,7 @@ export async function updateTodoAction(
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,  // ✅ Key change
+                'Cookie': `token=${token}`,
             },
             body: JSON.stringify(data),
         });
@@ -132,7 +132,7 @@ export async function deleteTodoAction(id: string): Promise<void> {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,  // ✅ Key change
+                'Cookie': `token=${token}`,
             },
         });
 

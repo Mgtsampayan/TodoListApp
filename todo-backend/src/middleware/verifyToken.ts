@@ -8,19 +8,8 @@ export async function verifyTokenMiddleware(
     next: NextFunction
 ) {
     try {
-        // ✅ FIX: Extract token from Authorization header instead of cookie
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            res.status(401).json({
-                success: false,
-                message: 'Authentication required',
-            });
-            return;
-        }
-
-        // Extract token after "Bearer "
-        const token = authHeader.substring(7);
+        // ✅ SECURITY HARDENING: Extract token from cookies (Strictly httpOnly)
+        const token = req.cookies.token;
 
         if (!token) {
             res.status(401).json({
@@ -36,7 +25,7 @@ export async function verifyTokenMiddleware(
         if (!payload) {
             res.status(401).json({
                 success: false,
-                message: 'Invalid or expired token',
+                message: 'Authentication session expired or invalid',
             });
             return;
         }

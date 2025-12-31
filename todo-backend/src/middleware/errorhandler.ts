@@ -47,10 +47,7 @@ export function errorHandler(
     }
 
     // Include stack trace in development
-    if (env.NODE_ENV === 'development') {
-        // response.stack = err.stack;
-        response.errors = err;
-    }
+    // ✅ SECURITY HARDENING: Never leak internal error objects
 
     res.status(500).json(response);
 }

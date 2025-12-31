@@ -49,13 +49,20 @@ export async function register(req: Request, res: Response, next: NextFunction) 
             role: user.role,
         });
 
-        // ✅ FIX: Return token in response body instead of cookie
+        // ✅ SECURITY HARDENING: Use strict httpOnly cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true, // Only send over HTTPS (Strict for Hackathon)
+            sameSite: 'strict', // CSRF Protection
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            path: '/',
+        });
+
         res.status(201).json({
             success: true,
             message: 'User registered successfully',
-            data: { 
-                user,
-                token  // ✅ Frontend will store this
+            data: {
+                user
             },
         });
     } catch (error) {
@@ -99,7 +106,15 @@ export async function login(req: Request, res: Response, next: NextFunction) {
             role: user.role,
         });
 
-        // ✅ FIX: Return token in body
+        // ✅ SECURITY HARDENING: Use strict httpOnly cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: '/',
+        });
+
         res.json({
             success: true,
             message: 'Login successful',
@@ -108,8 +123,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
                     id: user.id,
                     email: user.email,
                     role: user.role,
-                },
-                token  // ✅ Frontend will store this
+                }
             },
         });
     } catch (error) {
@@ -123,7 +137,14 @@ export async function login(req: Request, res: Response, next: NextFunction) {
  */
 export async function logout(req: Request, res: Response, next: NextFunction) {
     try {
-        // No cookie to clear - frontend will delete token from storage
+        // ✅ SECURITY HARDENING: Explicitly clear the secure cookie
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            path: '/',
+        });
+
         res.json({
             success: true,
             message: 'Logout successful',
