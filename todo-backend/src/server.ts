@@ -19,8 +19,33 @@ const app = express();
 // ============================================
 
 // 1. Security Headers (Data Privacy Act Compliance)
-// Sets HTTP headers to protect against common vulnerabilities (XSS, Sniffing, etc.)
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"], // Allow self and inline for simple apps, but strict enough
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https:"],
+            connectSrc: ["'self'", env.FRONTEND_URL],
+            fontSrc: ["'self'", "https:", "data:"],
+            objectSrc: ["'none'"],
+            mediaSrc: ["'self'"],
+            frameSrc: ["'none'"],
+        },
+    },
+    crossOriginEmbedderPolicy: true,
+    crossOriginOpenerPolicy: true,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    dnsPrefetchControl: { allow: false },
+    frameguard: { action: "deny" },
+    hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+    ieNoOpen: true,
+    noSniff: true,
+    originAgentCluster: true,
+    permittedCrossDomainPolicies: { permittedPolicies: "none" },
+    referrerPolicy: { policy: "no-referrer" },
+    xssFilter: true,
+}));
 
 // 2. CORS configuration
 app.use(
@@ -33,7 +58,6 @@ app.use(
 );
 
 // 3. Global Rate Limiting (DDoS Protection)
-// Basic protection: 100 requests per 15 minutes per IP
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -42,6 +66,17 @@ const globalLimiter = rateLimit({
     legacyHeaders: false,
 });
 app.use('/api', globalLimiter);
+
+// 3.1 Auth-Specific Rate Limiting (Brute Force Protection)
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // Limit to 10 attempts
+    message: 'Too many authentication attempts, please try again after 15 minutes.',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 // 4. Body parser
 // NOTE: I reduced the global limit to 100kb for security. 
@@ -73,9 +108,8 @@ app.get('/health', async (req: Request, res: Response) => {
             success: true,
             message: 'Server is healthy',
             data: {
-                environment: env.NODE_ENV,
                 timestamp: new Date().toISOString(),
-                database: 'connected',
+                status: 'operational',
             },
         });
     } catch (error) {
