@@ -14,6 +14,10 @@ import userRoutes from './routes/userRoutes.ts';
 
 const app = express();
 
+// Trust the first proxy (Render) to correctly identify client IP for rate limiting
+app.set('trust proxy', 1);
+
+
 // ============================================
 // MIDDLEWARE CONFIGURATION
 // ============================================
