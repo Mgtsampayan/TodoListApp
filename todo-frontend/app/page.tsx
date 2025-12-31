@@ -4,9 +4,18 @@ import { useActionState } from 'react';
 import { loginAction } from '@/actions/auth';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(loginAction, null);
+
+  useEffect(() => {
+    if (state?.success) {
+      router.push('/dashboard');
+    }
+  }, [state, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-indigo-50 via-white to-blue-50 px-4 sm:px-6 lg:px-8">
@@ -59,6 +68,21 @@ export default function LoginPage() {
               />
             </svg>
             <p className="text-sm font-medium">{state.message}</p>
+          </div>
+        )}
+
+        {/* Success Message */}
+        {state?.success && (
+          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl flex items-center gap-3 animate-in fade-in">
+            <svg
+              className="h-5 w-5 shrink-0 text-green-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <p className="text-sm font-medium">Login successful! Redirecting...</p>
           </div>
         )}
 
