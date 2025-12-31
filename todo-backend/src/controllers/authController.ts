@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/prisma.ts';
 import { hashPassword, verifyPassword } from '../utils/password.ts';
 import { generateToken } from '../utils/jwt.ts';
+import { env } from '../config/env.ts';
 
 /**
  * Register new user
@@ -49,11 +50,11 @@ export async function register(req: Request, res: Response, next: NextFunction) 
             role: user.role,
         });
 
-        // ✅ SECURITY HARDENING: Use strict httpOnly cookie
+        // ✅ SECURITY HARDENING: Use strict httpOnly cookie (configurable via env)
         res.cookie('token', token, {
             httpOnly: true,
-            secure: true, // Only send over HTTPS (Strict for Hackathon)
-            sameSite: 'strict', // CSRF Protection
+            secure: env.COOKIE_SECURE,
+            sameSite: env.COOKIE_SAME_SITE,
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             path: '/',
         });
@@ -106,11 +107,11 @@ export async function login(req: Request, res: Response, next: NextFunction) {
             role: user.role,
         });
 
-        // ✅ SECURITY HARDENING: Use strict httpOnly cookie
+        // ✅ SECURITY HARDENING: Use strict httpOnly cookie (configurable via env)
         res.cookie('token', token, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
+            secure: env.COOKIE_SECURE,
+            sameSite: env.COOKIE_SAME_SITE,
             maxAge: 7 * 24 * 60 * 60 * 1000,
             path: '/',
         });
@@ -140,8 +141,8 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
         // ✅ SECURITY HARDENING: Explicitly clear the secure cookie
         res.clearCookie('token', {
             httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
+            secure: env.COOKIE_SECURE,
+            sameSite: env.COOKIE_SAME_SITE,
             path: '/',
         });
 

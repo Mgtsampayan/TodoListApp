@@ -51,13 +51,14 @@ export async function registerAction(
       };
     }
 
-    // ✅ FIX: No credentials needed, token comes in response
+    // ✅ Server Action: fetch runs server-side, need credentials for cookie handling
     const response = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(validationResult.data),
+      credentials: 'include',
     });
 
     const data = await response.json();
@@ -69,17 +70,23 @@ export async function registerAction(
       };
     }
 
-    // ✅ FIX: Store token in httpOnly cookie (server-side)
-    const cookieStore = await cookies();
-    cookieStore.set('token', data.data.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60,
-      path: '/',
-    });
+    // ✅ Extract Set-Cookie header from backend and forward to browser
+    const setCookieHeader = response.headers.get('set-cookie');
+    if (setCookieHeader) {
+      const cookieStore = await cookies();
+      // Parse the cookie value from Set-Cookie header
+      const tokenMatch = setCookieHeader.match(/token=([^;]+)/);
+      if (tokenMatch) {
+        cookieStore.set('token', tokenMatch[1], {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 7 * 24 * 60 * 60,
+          path: '/',
+        });
+      }
+    }
 
-    // Return success without redirecting here
     return {
       success: true,
       message: 'Registration successful',
@@ -123,6 +130,7 @@ export async function loginAction(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(validationResult.data),
+      credentials: 'include',
     });
 
     const data = await response.json();
@@ -134,15 +142,22 @@ export async function loginAction(
       };
     }
 
-    // ✅ FIX: Store token in httpOnly cookie
-    const cookieStore = await cookies();
-    cookieStore.set('token', data.data.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60,
-      path: '/',
-    });
+    // ✅ Extract Set-Cookie header from backend and forward to browser
+    const setCookieHeader = response.headers.get('set-cookie');
+    if (setCookieHeader) {
+      const cookieStore = await cookies();
+      // Parse the cookie value from Set-Cookie header
+      const tokenMatch = setCookieHeader.match(/token=([^;]+)/);
+      if (tokenMatch) {
+        cookieStore.set('token', tokenMatch[1], {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 7 * 24 * 60 * 60,
+          path: '/',
+        });
+      }
+    }
 
     return {
       success: true,
