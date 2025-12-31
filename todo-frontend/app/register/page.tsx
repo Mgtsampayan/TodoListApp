@@ -4,9 +4,19 @@ import { useActionState } from 'react';
 import { registerAction } from '@/actions/auth';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function RegisterPage() {
+    const router = useRouter();
     const [state, formAction, isPending] = useActionState(registerAction, null);
+
+    // ✅ Redirect to dashboard after successful registration
+    useEffect(() => {
+        if (state?.success) {
+            router.push('/dashboard');
+        }
+    }, [state, router]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-indigo-50 via-white to-blue-50 px-4 sm:px-6 lg:px-8">

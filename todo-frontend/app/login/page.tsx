@@ -13,8 +13,8 @@ export default function LoginPage() {
 
     // ✅ FIX: Handle redirect after successful login
     useEffect(() => {
-        if (state?.success && state?.token) {
-            // Token is now stored in cookie via server action
+        if (state?.success) {
+            // Token is stored in httpOnly cookie via server action
             // Redirect to dashboard
             router.push('/dashboard');
         }
