@@ -117,11 +117,13 @@ app.get('/health', async (req: Request, res: Response) => {
             },
         });
     } catch (error) {
+        console.error('❌ Health check failed:', error);
         res.status(503).json({
             success: false,
             message: 'Server is unhealthy',
             data: {
                 database: 'disconnected',
+                error: error instanceof Error ? error.message : String(error),
             },
         });
     }

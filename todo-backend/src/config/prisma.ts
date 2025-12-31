@@ -15,9 +15,11 @@ const { Pool } = pg;
 const pool = new Pool({
     connectionString: env.DATABASE_URL,
     // Connection pool settings for production
-    max: 20, // Maximum number of clients in the pool
-    idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-    connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection not available
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+    // SSL requirement for Render/Cloud Postgres
+    ssl: env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 // Create Prisma adapter for PostgreSQL
