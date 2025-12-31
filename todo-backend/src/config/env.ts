@@ -19,11 +19,11 @@ const envSchema = z.object({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
     // CORS
-    // FRONTEND_URL: z.string().url('Invalid FRONTEND_URL'),
-    FRONTEND_URL: z.preprocess(
-        (val) => typeof val === 'string' ? val.trim() : val,
-        z.url()
-    ),
+    FRONTEND_URL: z.string().url('Invalid FRONTEND_URL'),
+    // FRONTEND_URL: z.preprocess(
+    //     (val) => typeof val === 'string' ? val.trim() : val,
+    //     z.url()
+    // ),
 
     // Cookies
     COOKIE_DOMAIN: z.string().default('localhost'),
