@@ -52,6 +52,7 @@ const nextConfig: NextConfig = {
   experimental: {
     // Optimize package imports
     optimizePackageImports: ['lucide-react'],
+    optimizeCss: true,
   },
 };
 

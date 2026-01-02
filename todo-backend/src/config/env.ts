@@ -26,12 +26,12 @@ const envSchema = z.object({
     // ),
 
     // Cookies
-    COOKIE_DOMAIN: z.string().default('localhost'),
+    COOKIE_DOMAIN: z.string().default(''),
     COOKIE_SECURE: z.preprocess(
         (val) => val === 'true',
         z.boolean()
     ).default(false),
-    COOKIE_SAME_SITE: z.enum(['strict', 'lax', 'none']).default('lax'),
+    COOKIE_SAME_SITE: z.enum(['strict', 'lax', 'none']).default('none'),
 });
 
 // 2. Validate environment variables on startup
