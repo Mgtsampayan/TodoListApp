@@ -12,12 +12,16 @@ import { env } from './env.js';
 const { Pool } = pg;
 
 // Create PostgreSQL connection pool
+// ✅ PERFORMANCE: Tuned settings for small-medium apps
 const pool = new Pool({
     connectionString: env.DATABASE_URL,
-    // Connection pool settings for production
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    // Connection pool settings optimized for performance
+    max: 10,                        // Reduced from 20 - saves memory, suitable for most apps
+    idleTimeoutMillis: 10000,       // Faster cleanup of idle connections (10s)
+    connectionTimeoutMillis: 5000,  // More resilient to slow connections
+    // ✅ Keep connections alive for faster reuse
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 10000,
     // SSL requirement for Render/Cloud Postgres
     ssl: env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
