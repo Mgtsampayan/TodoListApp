@@ -2,6 +2,7 @@ import express, { type Request, type Response } from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env.ts';
 import { errorHandler } from './middleware/errorhandler.ts';
@@ -60,6 +61,18 @@ app.use(
         allowedHeaders: ['Content-Type', 'Authorization'],
     })
 );
+
+// 2.1 Response Compression (Performance Optimization)
+// Reduces payload sizes by 60-80% for JSON responses
+app.use(compression({
+    level: 6, // Balance between speed and compression ratio
+    threshold: 1024, // Only compress responses > 1KB
+    filter: (req, res) => {
+        // Skip compression for SSE or if explicitly disabled
+        if (req.headers['x-no-compression']) return false;
+        return compression.filter(req, res);
+    },
+}));
 
 // 3. Global Rate Limiting (DDoS Protection)
 const globalLimiter = rateLimit({
