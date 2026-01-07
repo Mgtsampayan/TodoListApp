@@ -9,15 +9,11 @@ import { Role } from '../../generated/client/client.ts';
  */
 export async function getTodos(req: Request, res: Response, next: NextFunction) {
     try {
-        if (!req.user) {
-            return res.status(401).json({
-                success: false,
-                message: 'Authentication required',
-            });
-        }
+        // req.user is guaranteed by verifyTokenMiddleware
+        const user = req.user!;
 
         const todos = await prisma.todo.findMany({
-            where: req.user.role === Role.ADMIN ? {} : { ownerId: req.user.id },
+            where: user.role === Role.ADMIN ? {} : { ownerId: user.id },
             include: {
                 owner: {
                     select: { id: true, email: true },
@@ -41,20 +37,14 @@ export async function getTodos(req: Request, res: Response, next: NextFunction) 
  */
 export async function createTodo(req: Request, res: Response, next: NextFunction) {
     try {
-        if (!req.user) {
-            return res.status(401).json({
-                success: false,
-                message: 'Authentication required',
-            });
-        }
-
+        const user = req.user!;
         const { title, description } = req.body;
 
         const todo = await prisma.todo.create({
             data: {
                 title,
                 description,
-                ownerId: req.user.id,
+                ownerId: user.id,
             },
             include: {
                 owner: { select: { id: true, email: true } },
@@ -77,14 +67,9 @@ export async function createTodo(req: Request, res: Response, next: NextFunction
  */
 export async function updateTodo(req: Request, res: Response, next: NextFunction) {
     try {
-        if (!req.user) {
-            return res.status(401).json({
-                success: false,
-                message: 'Authentication required',
-            });
-        }
-
+        const user = req.user!;
         const { id } = req.params;
+
         if (!id) {
             return res.status(400).json({
                 success: false,
@@ -107,7 +92,7 @@ export async function updateTodo(req: Request, res: Response, next: NextFunction
         }
 
         // Authorization check: USER can only update own todos
-        if (req.user.role === Role.USER && existingTodo.ownerId !== req.user.id) {
+        if (user.role === Role.USER && existingTodo.ownerId !== user.id) {
             return res.status(403).json({
                 success: false,
                 message: 'You can only update your own todos',
@@ -143,14 +128,9 @@ export async function updateTodo(req: Request, res: Response, next: NextFunction
  */
 export async function deleteTodo(req: Request, res: Response, next: NextFunction) {
     try {
-        if (!req.user) {
-            return res.status(401).json({
-                success: false,
-                message: 'Authentication required',
-            });
-        }
-
+        const user = req.user!;
         const { id } = req.params;
+
         if (!id) {
             return res.status(400).json({
                 success: false,
@@ -171,7 +151,7 @@ export async function deleteTodo(req: Request, res: Response, next: NextFunction
         }
 
         // Authorization check: USER can only delete own todos
-        if (req.user.role === Role.USER && existingTodo.ownerId !== req.user.id) {
+        if (user.role === Role.USER && existingTodo.ownerId !== user.id) {
             return res.status(403).json({
                 success: false,
                 message: 'You can only delete your own todos',
