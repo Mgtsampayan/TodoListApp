@@ -7,6 +7,20 @@ import type { Todo } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
+// ============================================
+// SHARED AUTH HELPER (Performance Optimization)
+// ============================================
+// Reduces code duplication across all actions
+async function getAuthHeaders(): Promise<HeadersInit> {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    if (!token) throw new Error('Unauthorized');
+    return {
+        'Content-Type': 'application/json',
+        'Cookie': `token=${token}`,
+    };
+}
+
 const createTodoSchema = z.object({
     title: z.string().min(1, 'Title is required').max(100, 'Title is too long'),
     description: z.string().optional(),

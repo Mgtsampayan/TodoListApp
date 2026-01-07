@@ -1,7 +1,6 @@
-'use client';
-
 import LoginForm from '@/components/auth/LoginForm';
 
+// ✅ PERFORMANCE: Server Component - minimal JS sent to client
 export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-indigo-50 via-white to-blue-50 px-4 sm:px-6 lg:px-8">

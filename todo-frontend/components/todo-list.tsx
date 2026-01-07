@@ -2,9 +2,9 @@
 
 import { updateTodoAction, deleteTodoAction } from '@/actions/todos';
 import type { Todo } from '@/types';
-import { Check, Trash2, User as UserIcon, Clock, Calendar, AlertCircle } from 'lucide-react';
+import { Check, Trash2, User as UserIcon, Clock } from 'lucide-react';
 import { formatRelativeTime, truncate } from '@/lib/utils';
-import { useState } from 'react';
+import { useOptimistic, useTransition } from 'react';
 
 interface TodoListProps {
     todos: Todo[];
@@ -12,32 +12,42 @@ interface TodoListProps {
 }
 
 export function TodoList({ todos, showOwner = false }: TodoListProps) {
-    const [loadingId, setLoadingId] = useState<string | null>(null);
+    const [isPending, startTransition] = useTransition();
 
-    const handleToggleComplete = async (todo: Todo) => {
-        setLoadingId(todo.id);
-        try {
-            await updateTodoAction(todo.id, { completed: !todo.completed });
-        } catch (error) {
-            console.error('Toggle complete error:', error);
-        } finally {
-            setLoadingId(null);
+    // ✅ PERFORMANCE: Optimistic UI for instant feedback
+    const [optimisticTodos, updateOptimisticTodo] = useOptimistic(
+        todos,
+        (state: Todo[], update: { id: string; action: 'toggle' | 'delete' }) => {
+            if (update.action === 'delete') {
+                return state.filter(t => t.id !== update.id);
+            }
+            return state.map(t =>
+                t.id === update.id ? { ...t, completed: !t.completed } : t
+            );
         }
+    );
+
+    const handleToggleComplete = (todo: Todo) => {
+        startTransition(async () => {
+            // Immediately update UI optimistically
+            updateOptimisticTodo({ id: todo.id, action: 'toggle' });
+            // Then sync with server
+            await updateTodoAction(todo.id, { completed: !todo.completed });
+        });
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = (id: string) => {
         if (!confirm('Are you sure you want to delete this todo?')) return;
 
-        setLoadingId(id);
-        try {
+        startTransition(async () => {
+            // Immediately update UI optimistically
+            updateOptimisticTodo({ id, action: 'delete' });
+            // Then sync with server
             await deleteTodoAction(id);
-        } catch (error) {
-            console.error('Delete error:', error);
-            setLoadingId(null);
-        }
+        });
     };
 
-    if (todos.length === 0) {
+    if (optimisticTodos.length === 0) {
         return (
             <div className="text-center py-16 bg-white/50 backdrop-blur-sm rounded-2xl border border-dashed border-gray-300">
                 <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 ring-8 ring-indigo-50/50">
@@ -53,22 +63,22 @@ export function TodoList({ todos, showOwner = false }: TodoListProps) {
 
     return (
         <div className="space-y-4">
-            {todos.map((todo) => (
+            {optimisticTodos.map((todo) => (
                 <div
                     key={todo.id}
                     className={`group relative bg-white/80 backdrop-blur-md border rounded-2xl p-5 transition-all duration-300 hover:shadow-lg hover:scale-[1.01] ${todo.completed
-                            ? 'border-gray-100 bg-gray-50/50 opacity-75'
-                            : 'border-white hover:border-indigo-200'
+                        ? 'border-gray-100 bg-gray-50/50 opacity-75'
+                        : 'border-white hover:border-indigo-200'
                         }`}
                 >
                     <div className="flex items-start gap-5">
                         {/* Checkbox */}
                         <button
                             onClick={() => handleToggleComplete(todo)}
-                            disabled={loadingId === todo.id}
+                            disabled={isPending}
                             className={`mt-1 shrink-0 w-6 h-6 rounded-lg border-2 transition-all duration-300 flex items-center justify-center ${todo.completed
-                                    ? 'bg-gradient-to-br from-green-400 to-emerald-500 border-transparent shadow-sm'
-                                    : 'border-gray-300 hover:border-indigo-400 bg-white'
+                                ? 'bg-gradient-to-br from-green-400 to-emerald-500 border-transparent shadow-sm'
+                                : 'border-gray-300 hover:border-indigo-400 bg-white'
                                 } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                             {todo.completed && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
@@ -115,7 +125,7 @@ export function TodoList({ todos, showOwner = false }: TodoListProps) {
                         <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             <button
                                 onClick={() => handleDelete(todo.id)}
-                                disabled={loadingId === todo.id}
+                                disabled={isPending}
                                 className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all disabled:opacity-50"
                                 title="Delete task"
                             >
@@ -123,13 +133,6 @@ export function TodoList({ todos, showOwner = false }: TodoListProps) {
                             </button>
                         </div>
                     </div>
-
-                    {/* Loading Overlay */}
-                    {loadingId === todo.id && (
-                        <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] rounded-2xl flex items-center justify-center z-10">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                        </div>
-                    )}
                 </div>
             ))}
         </div>
