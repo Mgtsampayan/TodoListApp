@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { Prisma } from '../../generated/client/client.ts'; // Siguraduhin ang tamang path
+import { Prisma } from '../../generated/client/client.ts';
 import { ZodError } from 'zod';
 
 interface ErrorResponse {
@@ -15,7 +15,7 @@ export function errorHandler(
     res: Response,
     next: NextFunction
 ) {
-    // 1. Logging - Sa production, mas maganda kung gumagamit ka ng Winston o Pino
+    // 1. Logging - Sa production, mas maganda kung and gagamitin ay Winston o Pino
     // Pero for now, console.error is fine.
     console.error(`[${new Date().toISOString()}] ❌ Error:`, {
         message: err.message,
