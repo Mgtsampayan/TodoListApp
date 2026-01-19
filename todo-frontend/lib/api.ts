@@ -3,13 +3,6 @@ import type { TodosResponse, UsersResponse } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-
-/**
- * Make authenticated API request (Server Component only)
- */
 async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
@@ -22,7 +15,6 @@ async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise
             ...options.headers,
         },
         credentials: 'include',
-        // ✅ NEXT.JS 16: Use no-store for dynamic data
         cache: 'no-store',
     });
 
@@ -33,13 +25,6 @@ async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise
     return response.json();
 }
 
-// ============================================
-// TODO API FUNCTIONS
-// ============================================
-
-/**
- * Get all todos for current user (USER) or all todos (ADMIN)
- */
 export async function getTodos(): Promise<TodosResponse> {
     try {
         return await fetchAPI<TodosResponse>('/api/todos');
@@ -52,9 +37,6 @@ export async function getTodos(): Promise<TodosResponse> {
     }
 }
 
-/**
- * Get single todo by ID
- */
 export async function getTodoById(id: string): Promise<TodosResponse> {
     try {
         return await fetchAPI<TodosResponse>(`/api/todos/${id}`);
@@ -67,13 +49,6 @@ export async function getTodoById(id: string): Promise<TodosResponse> {
     }
 }
 
-// ============================================
-// ADMIN API FUNCTIONS
-// ============================================
-
-/**
- * Get all users (Admin only)
- */
 export async function getAllUsers(): Promise<UsersResponse> {
     try {
         return await fetchAPI<UsersResponse>('/api/users');

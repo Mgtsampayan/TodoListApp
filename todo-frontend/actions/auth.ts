@@ -28,9 +28,6 @@ interface ActionResult {
   errors?: Record<string, string[]>;
 }
 
-/**
- * Register new user
- */
 export async function registerAction(
   prevState: ActionResult | null,
   formData: FormData
@@ -51,7 +48,6 @@ export async function registerAction(
       };
     }
 
-    // ✅ Server Action: fetch runs server-side, need credentials for cookie handling
     const response = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
       headers: {
@@ -70,11 +66,9 @@ export async function registerAction(
       };
     }
 
-    // ✅ Extract Set-Cookie header from backend and forward to browser
     const setCookieHeader = response.headers.get('set-cookie');
     if (setCookieHeader) {
       const cookieStore = await cookies();
-      // Parse the cookie value from Set-Cookie header
       const tokenMatch = setCookieHeader.match(/token=([^;]+)/);
       if (tokenMatch) {
         cookieStore.set('token', tokenMatch[1], {
@@ -101,9 +95,6 @@ export async function registerAction(
   }
 }
 
-/**
- * Login user
- */
 export async function loginAction(
   prevState: ActionResult | null,
   formData: FormData
@@ -142,11 +133,9 @@ export async function loginAction(
       };
     }
 
-    // ✅ Extract Set-Cookie header from backend and forward to browser
     const setCookieHeader = response.headers.get('set-cookie');
     if (setCookieHeader) {
       const cookieStore = await cookies();
-      // Parse the cookie value from Set-Cookie header
       const tokenMatch = setCookieHeader.match(/token=([^;]+)/);
       if (tokenMatch) {
         cookieStore.set('token', tokenMatch[1], {
@@ -173,9 +162,6 @@ export async function loginAction(
   }
 }
 
-/**
- * Logout user
- */
 export async function logoutAction(): Promise<void> {
   try {
     const cookieStore = await cookies();
@@ -186,12 +172,11 @@ export async function logoutAction(): Promise<void> {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Cookie': `token=${token}`, // ✅ SECURITY HARDENING: Use Cookie
+          'Cookie': `token=${token}`,
         },
       });
     }
 
-    // Clear cookie
     cookieStore.delete('token');
 
   } catch (error) {
@@ -201,9 +186,6 @@ export async function logoutAction(): Promise<void> {
   redirect('/login');
 }
 
-/**
- * Get current authenticated user
- */
 export async function getCurrentUserAction() {
   try {
     const cookieStore = await cookies();
@@ -215,7 +197,7 @@ export async function getCurrentUserAction() {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Cookie': `token=${token}`, // ✅ SECURITY HARDENING: Use Cookie
+        'Cookie': `token=${token}`,
       },
     });
 

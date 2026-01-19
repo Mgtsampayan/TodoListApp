@@ -1,15 +1,9 @@
-// src/controllers/todoController.ts
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/prisma.ts';
 import { Role } from '../../generated/client/client.ts';
 
-/**
- * Get all todos (USER: own todos only, ADMIN: all todos)
- * GET /api/todos
- */
 export async function getTodos(req: Request, res: Response, next: NextFunction) {
     try {
-        // req.user is guaranteed by verifyTokenMiddleware
         const user = req.user!;
 
         const todos = await prisma.todo.findMany({
@@ -31,10 +25,6 @@ export async function getTodos(req: Request, res: Response, next: NextFunction) 
     }
 }
 
-/**
- * Create new todo
- * POST /api/todos
- */
 export async function createTodo(req: Request, res: Response, next: NextFunction) {
     try {
         const user = req.user!;
@@ -61,10 +51,6 @@ export async function createTodo(req: Request, res: Response, next: NextFunction
     }
 }
 
-/**
- * Update todo
- * PUT /api/todos/:id
- */
 export async function updateTodo(req: Request, res: Response, next: NextFunction) {
     try {
         const user = req.user!;
@@ -79,7 +65,6 @@ export async function updateTodo(req: Request, res: Response, next: NextFunction
 
         const { title, description, completed } = req.body;
 
-        // Find todo
         const existingTodo = await prisma.todo.findUnique({
             where: { id },
         });
@@ -91,7 +76,6 @@ export async function updateTodo(req: Request, res: Response, next: NextFunction
             });
         }
 
-        // Authorization check: USER can only update own todos
         if (user.role === Role.USER && existingTodo.ownerId !== user.id) {
             return res.status(403).json({
                 success: false,
@@ -99,7 +83,6 @@ export async function updateTodo(req: Request, res: Response, next: NextFunction
             });
         }
 
-        // Update todo
         const updatedTodo = await prisma.todo.update({
             where: { id },
             data: {
@@ -122,10 +105,6 @@ export async function updateTodo(req: Request, res: Response, next: NextFunction
     }
 }
 
-/**
- * Delete todo
- * DELETE /api/todos/:id
- */
 export async function deleteTodo(req: Request, res: Response, next: NextFunction) {
     try {
         const user = req.user!;
@@ -138,7 +117,6 @@ export async function deleteTodo(req: Request, res: Response, next: NextFunction
             });
         }
 
-        // Find todo
         const existingTodo = await prisma.todo.findUnique({
             where: { id },
         });
@@ -150,7 +128,6 @@ export async function deleteTodo(req: Request, res: Response, next: NextFunction
             });
         }
 
-        // Authorization check: USER can only delete own todos
         if (user.role === Role.USER && existingTodo.ownerId !== user.id) {
             return res.status(403).json({
                 success: false,
@@ -158,7 +135,6 @@ export async function deleteTodo(req: Request, res: Response, next: NextFunction
             });
         }
 
-        // Delete todo
         await prisma.todo.delete({ where: { id } });
 
         res.json({

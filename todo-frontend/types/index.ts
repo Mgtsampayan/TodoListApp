@@ -1,7 +1,3 @@
-// ============================================
-// USER & AUTH TYPES
-// ============================================
-
 export type UserRole = 'USER' | 'ADMIN';
 
 export interface User {
@@ -19,10 +15,6 @@ export interface AuthResponse {
         user: User;
     };
 }
-
-// ============================================
-// TODO TYPES
-// ============================================
 
 export interface Todo {
     id: string;
@@ -53,10 +45,6 @@ export interface TodoResponse {
     };
 }
 
-// ============================================
-// API RESPONSE TYPES
-// ============================================
-
 export interface ApiResponse<T = unknown> {
     success: boolean;
     message?: string;
@@ -70,19 +58,11 @@ export interface ApiError {
     errors?: unknown;
 }
 
-// ============================================
-// FORM ACTION TYPES
-// ============================================
-
 export interface ActionResult {
     success: boolean;
     message: string;
     errors?: Record<string, string[]>;
 }
-
-// ============================================
-// ADMIN TYPES
-// ============================================
 
 export interface UserWithStats extends User {
     _count: {

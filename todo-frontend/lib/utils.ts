@@ -1,17 +1,10 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-/**
- * Merge Tailwind CSS classes safely
- * Handles conflicts and deduplication
- */
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-/**
- * Format date to readable string
- */
 export function formatDate(date: string | Date): string {
     const d = typeof date === 'string' ? new Date(date) : date;
     return new Intl.DateTimeFormat('en-US', {
@@ -23,9 +16,6 @@ export function formatDate(date: string | Date): string {
     }).format(d);
 }
 
-/**
- * Format date to relative time (e.g., "2 hours ago")
- */
 export function formatRelativeTime(date: string | Date): string {
     const d = typeof date === 'string' ? new Date(date) : date;
     const now = new Date();
@@ -39,17 +29,11 @@ export function formatRelativeTime(date: string | Date): string {
     return formatDate(d);
 }
 
-/**
- * Truncate text to specified length
- */
 export function truncate(text: string, length: number): string {
     if (text.length <= length) return text;
     return text.slice(0, length) + '...';
 }
 
-/**
- * Get initials from email
- */
 export function getInitials(email: string): string {
     const parts = email.split('@')[0].split('.');
     if (parts.length >= 2) {
@@ -58,9 +42,6 @@ export function getInitials(email: string): string {
     return email.slice(0, 2).toUpperCase();
 }
 
-/**
- * Get role badge color
- */
 export function getRoleBadgeColor(role: 'USER' | 'ADMIN'): string {
     return role === 'ADMIN'
         ? 'bg-purple-100 text-purple-800 border-purple-200'

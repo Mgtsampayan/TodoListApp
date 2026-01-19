@@ -1,10 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/prisma.ts';
 
-/**
- * Get all users (Admin only)
- * GET /api/users
- */
 export async function getAllUsers(req: Request, res: Response, next: NextFunction) {
     try {
         const users = await prisma.user.findMany({

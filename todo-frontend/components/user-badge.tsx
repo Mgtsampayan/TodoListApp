@@ -1,3 +1,5 @@
+'use client'
+
 import type { UserRole } from '@/types';
 import { Shield, User as UserIcon } from 'lucide-react';
 import { getInitials, getRoleBadgeColor } from '@/lib/utils';

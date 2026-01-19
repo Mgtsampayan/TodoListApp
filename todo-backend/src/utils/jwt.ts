@@ -2,7 +2,6 @@ import * as jose from 'jose';
 import { env } from '../config/env.js';
 import { Role } from '../../generated/client/client.ts';
 
-// Convert JWT_SECRET to Uint8Array for jose
 const secret = new TextEncoder().encode(env.JWT_SECRET);
 
 export interface JWTPayload {
@@ -11,9 +10,6 @@ export interface JWTPayload {
     role: Role;
 }
 
-/**
- * Generate JWT Token
- */
 export async function generateToken(payload: JWTPayload): Promise<string> {
     const jwt = await new jose.SignJWT({
         id: payload.id,
@@ -28,9 +24,6 @@ export async function generateToken(payload: JWTPayload): Promise<string> {
     return jwt;
 }
 
-/**
- * Verify JWT Token
- */
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
     try {
         const { payload } = await jose.jwtVerify(token, secret);

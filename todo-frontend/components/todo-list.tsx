@@ -14,7 +14,6 @@ interface TodoListProps {
 export function TodoList({ todos, showOwner = false }: TodoListProps) {
     const [isPending, startTransition] = useTransition();
 
-    // ✅ PERFORMANCE: Optimistic UI for instant feedback
     const [optimisticTodos, updateOptimisticTodo] = useOptimistic(
         todos,
         (state: Todo[], update: { id: string; action: 'toggle' | 'delete' }) => {
@@ -29,9 +28,7 @@ export function TodoList({ todos, showOwner = false }: TodoListProps) {
 
     const handleToggleComplete = (todo: Todo) => {
         startTransition(async () => {
-            // Immediately update UI optimistically
             updateOptimisticTodo({ id: todo.id, action: 'toggle' });
-            // Then sync with server
             await updateTodoAction(todo.id, { completed: !todo.completed });
         });
     };
@@ -40,9 +37,7 @@ export function TodoList({ todos, showOwner = false }: TodoListProps) {
         if (!confirm('Are you sure you want to delete this todo?')) return;
 
         startTransition(async () => {
-            // Immediately update UI optimistically
             updateOptimisticTodo({ id, action: 'delete' });
-            // Then sync with server
             await deleteTodoAction(id);
         });
     };
@@ -72,7 +67,6 @@ export function TodoList({ todos, showOwner = false }: TodoListProps) {
                         }`}
                 >
                     <div className="flex items-start gap-5">
-                        {/* Checkbox */}
                         <button
                             onClick={() => handleToggleComplete(todo)}
                             disabled={isPending}
@@ -84,7 +78,6 @@ export function TodoList({ todos, showOwner = false }: TodoListProps) {
                             {todo.completed && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
                         </button>
 
-                        {/* Content */}
                         <div className="flex-1 min-w-0 pt-0.5">
                             <h3
                                 className={`font-semibold text-gray-900 text-lg mb-1.5 transition-all ${todo.completed ? 'line-through text-gray-400' : ''
@@ -121,7 +114,6 @@ export function TodoList({ todos, showOwner = false }: TodoListProps) {
                             </div>
                         </div>
 
-                        {/* Actions */}
                         <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                             <button
                                 onClick={() => handleDelete(todo.id)}

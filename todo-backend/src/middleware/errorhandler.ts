@@ -10,14 +10,12 @@ interface ErrorResponse {
 }
 
 export function errorHandler(
-    err: any, // Ginawa nating 'any' para ma-access ang properties ng iba't ibang error types
+    err: any,
     req: Request,
     res: Response,
     next: NextFunction
 ) {
-    // 1. Logging - Sa production, mas maganda kung and gagamitin ay Winston o Pino
-    // Pero for now, console.error is fine.
-    console.error(`[${new Date().toISOString()}] ❌ Error:`, {
+    console.error(`[${new Date().toISOString()}] Error:`, {
         message: err.message,
         stack: err.stack,
         path: req.path,
@@ -29,7 +27,6 @@ export function errorHandler(
         message: 'Internal server error',
     };
 
-    // 2. Handle JSON Syntax Errors (e.g., Malformed JSON body)
     if (err instanceof SyntaxError && 'status' in err && err.status === 400) {
         return res.status(400).json({
             success: false,
@@ -37,7 +34,6 @@ export function errorHandler(
         });
     }
 
-    // 3. Handle Zod Validation Errors (Kung ipapasa mo ang error sa next())
     if (err instanceof ZodError) {
         return res.status(400).json({
             success: false,
@@ -49,26 +45,24 @@ export function errorHandler(
         });
     }
 
-    // 4. Handle Prisma Specific Errors
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
         switch (err.code) {
-            case 'P2002': // Unique constraint violation
+            case 'P2002':
                 return res.status(409).json({
                     success: false,
                     message: `A record with this ${err.meta?.target} already exists.`,
                 });
-            case 'P2025': // Record not found
+            case 'P2025':
                 return res.status(404).json({
                     success: false,
                     message: 'The requested record was not found.',
                 });
-            case 'P2003': // Foreign key constraint failed
+            case 'P2003':
                 return res.status(400).json({
                     success: false,
                     message: 'Operation failed due to a database relationship constraint.',
                 });
             default:
-                // Iba pang Prisma errors na ayaw nating i-leak ang details
                 return res.status(400).json({
                     success: false,
                     message: 'Database operation failed.',
@@ -83,7 +77,6 @@ export function errorHandler(
         });
     }
 
-    // 5. Handle JWT / Auth Errors
     if (err.name === 'UnauthorizedError' || err.name === 'JsonWebTokenError') {
         return res.status(401).json({
             success: false,
@@ -98,8 +91,6 @@ export function errorHandler(
         });
     }
 
-    // 6. Final Fallback (500 Internal Server Error)
-    // ✅ SECURITY: I-check ang environment. Ipakita lang ang stack trace sa development.
     const isDevelopment = process.env.NODE_ENV === 'development';
 
     res.status(err.status || 500).json({

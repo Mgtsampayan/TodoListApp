@@ -27,7 +27,6 @@ export async function getCurrentUser(): Promise<User | null> {
             return null;
         }
 
-        // Call backend /api/auth/me endpoint
         const response = await fetch(`${API_URL}/api/auth/me`, {
             method: 'GET',
             headers: {

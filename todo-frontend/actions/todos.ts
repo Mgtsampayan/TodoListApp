@@ -7,10 +7,6 @@ import type { Todo } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-// ============================================
-// SHARED AUTH HELPER (Performance Optimization)
-// ============================================
-// Reduces code duplication across all actions
 async function getAuthHeaders(): Promise<HeadersInit> {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
@@ -43,7 +39,6 @@ export async function getTodosAction(): Promise<{
 
         if (!token) return { success: false, message: 'Unauthorized' };
 
-        // ✅ FIX: Send token in Authorization header
         const response = await fetch(`${API_URL}/api/todos`, {
             method: 'GET',
             headers: {
@@ -88,7 +83,6 @@ export async function createTodoAction(formData: FormData): Promise<{
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
-        // ✅ FIX: Send token in Authorization header
         const response = await fetch(`${API_URL}/api/todos`, {
             method: 'POST',
             headers: {
@@ -119,7 +113,6 @@ export async function updateTodoAction(
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
-        // ✅ FIX: Send token in Authorization header
         await fetch(`${API_URL}/api/todos/${id}`, {
             method: 'PUT',
             headers: {
@@ -141,7 +134,6 @@ export async function deleteTodoAction(id: string): Promise<void> {
         const cookieStore = await cookies();
         const token = cookieStore.get('token')?.value;
 
-        // ✅ FIX: Send token in Authorization header
         await fetch(`${API_URL}/api/todos/${id}`, {
             method: 'DELETE',
             headers: {

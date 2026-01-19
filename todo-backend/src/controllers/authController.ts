@@ -4,15 +4,10 @@ import { hashPassword, verifyPassword } from '../utils/password.ts';
 import { generateToken } from '../utils/jwt.ts';
 import { env } from '../config/env.ts';
 
-/**
- * Register new user
- * POST /api/auth/register
- */
 export async function register(req: Request, res: Response, next: NextFunction) {
     try {
         const { email, password } = req.body;
 
-        // Check if user already exists
         const existingUser = await prisma.user.findUnique({
             where: { email },
         });
@@ -25,10 +20,8 @@ export async function register(req: Request, res: Response, next: NextFunction) 
             return;
         }
 
-        // Hash password
         const hashedPassword = await hashPassword(password);
 
-        // Create user
         const user = await prisma.user.create({
             data: {
                 email,
@@ -43,38 +36,30 @@ export async function register(req: Request, res: Response, next: NextFunction) 
             },
         });
 
-        // Generate JWT
         const token = await generateToken({
             id: user.id,
             email: user.email,
             role: user.role,
         });
 
-        // ✅ SECURITY HARDENING: Use strict httpOnly cookie (configurable via env)
         res.cookie('token', token, {
             httpOnly: true,
             secure: env.COOKIE_SECURE,
             sameSite: env.COOKIE_SAME_SITE,
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            maxAge: 7 * 24 * 60 * 60 * 1000,
             path: '/',
         });
 
         res.status(201).json({
             success: true,
             message: 'User registered successfully',
-            data: {
-                user
-            },
+            data: { user },
         });
     } catch (error) {
         next(error);
     }
 }
 
-/**
- * Login user
- * POST /api/auth/login
- */
 export async function login(req: Request, res: Response, next: NextFunction) {
     try {
         const { email, password } = req.body;
@@ -107,7 +92,6 @@ export async function login(req: Request, res: Response, next: NextFunction) {
             role: user.role,
         });
 
-        // ✅ SECURITY HARDENING: Use strict httpOnly cookie (configurable via env)
         res.cookie('token', token, {
             httpOnly: true,
             secure: env.COOKIE_SECURE,
@@ -132,13 +116,8 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     }
 }
 
-/**
- * Logout user (now just returns success)
- * POST /api/auth/logout
- */
 export async function logout(req: Request, res: Response, next: NextFunction) {
     try {
-        // ✅ SECURITY HARDENING: Explicitly clear the secure cookie
         res.clearCookie('token', {
             httpOnly: true,
             secure: env.COOKIE_SECURE,
@@ -155,10 +134,6 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
     }
 }
 
-/**
- * Get current user profile
- * GET /api/auth/me
- */
 export async function getCurrentUser(req: Request, res: Response, next: NextFunction) {
     try {
         if (!req.user) {
