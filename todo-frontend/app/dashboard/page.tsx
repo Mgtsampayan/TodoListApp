@@ -23,8 +23,8 @@ export default async function DashboardPage() {
         <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-blue-50 relative overflow-hidden">
             {/* Background Decorative Elements */}
             <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-indigo-200/20 blur-[100px]" />
-                <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-blue-200/20 blur-[100px]" />
+                <div className="absolute top-[-10%] right-[-5%] w-125 h-125 rounded-full bg-indigo-200/20 blur-[100px]" />
+                <div className="absolute bottom-[-10%] left-[-5%] w-150 h-125 rounded-full bg-blue-200/20 blur-[100px]" />
             </div>
 
             {/* Navigation Bar */}
@@ -43,7 +43,7 @@ export default async function DashboardPage() {
                                 <span className="text-sm font-semibold text-gray-900">{user.email}</span>
                                 <span className="text-xs text-indigo-600 font-medium bg-indigo-50 px-2 py-0.5 rounded-full">{user.role}</span>
                             </div>
-                            <div className="h-8 w-[1px] bg-gray-200 hidden sm:block"></div>
+                            <div className="h-8 w-px bg-gray-200 hidden sm:block"></div>
                             <LogoutButton variant="ghost" className="text-gray-600 hover:text-red-600 hover:bg-red-50" />
                         </div>
                     </div>
@@ -59,11 +59,11 @@ export default async function DashboardPage() {
                                 Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'},
                                 <span className="text-indigo-600"> {user.email.split('@')[0]}</span>
                             </h1>
-                            <p className="text-gray-500">Here's what you need to focus on today.</p>
+                            <p className="text-gray-500">Here&apos;s what you need to focus on today.</p>
                         </div>
 
                         {/* Progress Widget */}
-                        <div className="bg-white/60 backdrop-blur-md rounded-2xl p-4 border border-white shadow-sm flex items-center gap-4 min-w-[240px]">
+                        <div className="bg-white/60 backdrop-blur-md rounded-2xl p-4 border border-white shadow-sm flex items-center gap-4 min-w-60">
                             <div className="relative h-14 w-14 shrink-0">
                                 <svg className="h-full w-full transform -rotate-90" viewBox="0 0 36 36">
                                     <path
