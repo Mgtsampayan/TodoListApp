@@ -10,9 +10,10 @@ export function validateRequest(schema: ZodObject) {
                 params: req.params,
             });
 
-            req.body = validated.body,
-                req.body = validated.query,
-                req.body = validated.params;
+            req.body = validated.body;
+            req.query = validated.query as any;
+            req.params = validated.params as any;
+
             next();
         } catch (error) {
             if (error instanceof ZodError) {

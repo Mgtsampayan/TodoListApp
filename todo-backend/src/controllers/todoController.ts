@@ -54,7 +54,7 @@ export async function createTodo(req: Request, res: Response, next: NextFunction
 export async function updateTodo(req: Request, res: Response, next: NextFunction) {
     try {
         const user = req.user!;
-        const { id } = req.params;
+        const id = req.params.id as string;
 
         if (!id) {
             return res.status(400).json({
@@ -108,7 +108,7 @@ export async function updateTodo(req: Request, res: Response, next: NextFunction
 export async function deleteTodo(req: Request, res: Response, next: NextFunction) {
     try {
         const user = req.user!;
-        const { id } = req.params;
+        const id = req.params.id as string;
 
         if (!id) {
             return res.status(400).json({
